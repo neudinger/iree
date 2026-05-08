@@ -913,19 +913,88 @@ StringRef normalizeARMGPUTarget(StringRef target) {
 // cooperative matrix layouts are opaque. We need to create NVIDIA specific WMMA
 // intrinsics if we need to have explicit layout analysis and register mapping.
 
+static constexpr MMAIntrinsic kNvidiaMmaOps[] = {
+    MMAIntrinsic::NV_MMA_SYNC_F32_16x8x16_F16,
+    MMAIntrinsic::NV_MMA_SYNC_F16_16x8x16_F16,
+    MMAIntrinsic::NV_WMMA_F32_16x16x16_F16,
+    MMAIntrinsic::NV_WMMA_F16_16x16x16_F16,
+};
+
+const WgpDetails *getAdaWgpDetails() {
+  static const WgpDetails adaWgp = {allComputeBits,
+                                    allStorageBits,
+                                    allSubgroupOps,
+                                    allDotProductOps,
+                                    std::size(kNvidiaMmaOps),
+                                    kNvidiaMmaOps,
+                                    0,
+                                    nullptr,
+                                    {32, 32},
+                                    {1024, 1024, 1024},
+                                    1024,
+                                    99 * 1024,
+                                    {0x7fffffff, 0xffff, 0xffff}};
+  return &adaWgp;
+}
+
+const WgpDetails *getHopperWgpDetails() {
+  static const WgpDetails hopperWgp = {allComputeBits,
+                                       allStorageBits,
+                                       allSubgroupOps,
+                                       allDotProductOps,
+                                       std::size(kNvidiaMmaOps),
+                                       kNvidiaMmaOps,
+                                       0,
+                                       nullptr,
+                                       {32, 32},
+                                       {1024, 1024, 1024},
+                                       1024,
+                                       227 * 1024,
+                                       {0x7fffffff, 0xffff, 0xffff}};
+  return &hopperWgp;
+}
+
+const WgpDetails *getBlackwellDatacenterWgpDetails() {
+  static const WgpDetails blackwellWgp = {allComputeBits,
+                                          allStorageBits,
+                                          allSubgroupOps,
+                                          allDotProductOps,
+                                          std::size(kNvidiaMmaOps),
+                                          kNvidiaMmaOps,
+                                          0,
+                                          nullptr,
+                                          {32, 32},
+                                          {1024, 1024, 1024},
+                                          1024,
+                                          227 * 1024,
+                                          {0x7fffffff, 0xffff, 0xffff}};
+  return &blackwellWgp;
+}
+
+const WgpDetails *getBlackwellConsumerWgpDetails() {
+  static const WgpDetails blackwellWgp = {allComputeBits,
+                                          allStorageBits,
+                                          allSubgroupOps,
+                                          allDotProductOps,
+                                          std::size(kNvidiaMmaOps),
+                                          kNvidiaMmaOps,
+                                          0,
+                                          nullptr,
+                                          {32, 32},
+                                          {1024, 1024, 1024},
+                                          1024,
+                                          99 * 1024,
+                                          {0x7fffffff, 0xffff, 0xffff}};
+  return &blackwellWgp;
+}
+
 const WgpDetails *getAmpereWgpDetails() {
-  static const MMAIntrinsic mmaOps[] = {
-      MMAIntrinsic::NV_MMA_SYNC_F32_16x8x16_F16,
-      MMAIntrinsic::NV_MMA_SYNC_F16_16x8x16_F16,
-      MMAIntrinsic::NV_WMMA_F32_16x16x16_F16,
-      MMAIntrinsic::NV_WMMA_F16_16x16x16_F16,
-  };
   static const WgpDetails ampereWgp = {allComputeBits,
                                        allStorageBits,
                                        allSubgroupOps,
                                        allDotProductOps,
-                                       std::size(mmaOps),
-                                       mmaOps,
+                                       std::size(kNvidiaMmaOps),
+                                       kNvidiaMmaOps,
                                        0,
                                        nullptr,
                                        {32, 32},
@@ -937,18 +1006,12 @@ const WgpDetails *getAmpereWgpDetails() {
 }
 
 const WgpDetails *getTuringWgpDetails() {
-  static const MMAIntrinsic mmaOps[] = {
-      MMAIntrinsic::NV_MMA_SYNC_F32_16x8x16_F16,
-      MMAIntrinsic::NV_MMA_SYNC_F16_16x8x16_F16,
-      MMAIntrinsic::NV_WMMA_F32_16x16x16_F16,
-      MMAIntrinsic::NV_WMMA_F16_16x16x16_F16,
-  };
   static const WgpDetails turingWgp = {allComputeBits,
                                        allStorageBits,
                                        allSubgroupOps,
                                        allDotProductOps,
-                                       std::size(mmaOps),
-                                       mmaOps,
+                                       std::size(kNvidiaMmaOps),
+                                       kNvidiaMmaOps,
                                        0,
                                        nullptr,
                                        {32, 32},
@@ -960,18 +1023,12 @@ const WgpDetails *getTuringWgpDetails() {
 }
 
 const WgpDetails *getVoltaWgpDetails() {
-  static const MMAIntrinsic mmaOps[] = {
-      MMAIntrinsic::NV_MMA_SYNC_F32_16x8x16_F16,
-      MMAIntrinsic::NV_MMA_SYNC_F16_16x8x16_F16,
-      MMAIntrinsic::NV_WMMA_F32_16x16x16_F16,
-      MMAIntrinsic::NV_WMMA_F16_16x16x16_F16,
-  };
   static const WgpDetails voltaWgp = {allComputeBits,
                                       allStorageBits,
                                       allSubgroupOps,
                                       DotProductOps::None,
-                                      std::size(mmaOps),
-                                      mmaOps,
+                                      std::size(kNvidiaMmaOps),
+                                      kNvidiaMmaOps,
                                       0,
                                       nullptr,
                                       {32, 32},
@@ -994,7 +1051,31 @@ const WgpDetails *getPascalWgpDetails() {
   return &pascalWgp;
 }
 
+bool isKnownNVIDIACanonicalTarget(StringRef target) {
+  return llvm::StringSwitch<bool>(target)
+      .Cases({"sm_60", "sm_61", "sm_62"}, true)
+      .Cases({"sm_70", "sm_72"}, true)
+      .Case("sm_75", true)
+      .Cases({"sm_80", "sm_86", "sm_87"}, true)
+      .Case("sm_89", true)
+      .Cases({"sm_90", "sm_90a"}, true)
+      .Cases({"sm_100", "sm_100f", "sm_100a"}, true)
+      .Cases({"sm_101", "sm_101f", "sm_101a"}, true)
+      .Cases({"sm_103", "sm_103f", "sm_103a"}, true)
+      .Cases({"sm_110", "sm_110f", "sm_110a"}, true)
+      .Cases({"sm_120", "sm_120f", "sm_120a"}, true)
+      .Cases({"sm_121", "sm_121f", "sm_121a"}, true)
+      .Default(false);
+}
+
+StringRef normalizeNVIDIAGPUTarget(StringRef target);
+
 std::optional<TargetDetails> getNVIDIAGPUTargetDetails(StringRef target) {
+  const WgpDetails *blackwellConsumerWgp = getBlackwellConsumerWgpDetails();
+  const WgpDetails *blackwellDatacenterWgp =
+      getBlackwellDatacenterWgpDetails();
+  const WgpDetails *hopperWgp = getHopperWgpDetails();
+  const WgpDetails *adaWgp = getAdaWgpDetails();
   const WgpDetails *ampereWgp = getAmpereWgpDetails();
   const WgpDetails *turingWgp = getTuringWgpDetails();
   const WgpDetails *voltaWgp = getVoltaWgpDetails();
@@ -1011,7 +1092,10 @@ std::optional<TargetDetails> getNVIDIAGPUTargetDetails(StringRef target) {
   // https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
   // lists mappings from microarchitectures to compute capabilities.
 
-  return llvm::StringSwitch<std::optional<TargetDetails>>(target.lower())
+  std::string lowerTargetStorage = target.lower();
+  StringRef lowerTarget = lowerTargetStorage;
+  if (auto productDetails =
+          llvm::StringSwitch<std::optional<TargetDetails>>(lowerTarget)
       // https://www.techpowerup.com/gpu-specs/a100-sxm4-80-gb.c3746
       .Case("a100", TargetDetails{ampereWgp, &a100Chip})
       // https://www.techpowerup.com/gpu-specs/geforce-rtx-3090-ti.c3829
@@ -1026,6 +1110,25 @@ std::optional<TargetDetails> getNVIDIAGPUTargetDetails(StringRef target) {
       .Case("rtx3070ti", TargetDetails{ampereWgp, &rtx3070tiChip})
       // https://www.techpowerup.com/gpu-specs/geforce-rtx-3070.c3674
       .Case("rtx3070", TargetDetails{ampereWgp, &rtx3070Chip})
+      .Default(std::nullopt)) {
+    return productDetails;
+  }
+
+  StringRef normalizedTarget = normalizeNVIDIAGPUTarget(target);
+  if (normalizedTarget.empty()) {
+    return std::nullopt;
+  }
+
+  return llvm::StringSwitch<std::optional<TargetDetails>>(normalizedTarget)
+      .Cases({"sm_120", "sm_120f", "sm_120a", "sm_121", "sm_121f",
+              "sm_121a"},
+             TargetDetails{blackwellConsumerWgp, nullptr})
+      .Cases({"sm_100", "sm_100f", "sm_100a", "sm_101", "sm_101f",
+              "sm_101a", "sm_103", "sm_103f", "sm_103a", "sm_110",
+              "sm_110f", "sm_110a"},
+             TargetDetails{blackwellDatacenterWgp, nullptr})
+      .Cases({"sm_90", "sm_90a"}, TargetDetails{hopperWgp, nullptr})
+      .Case("sm_89", TargetDetails{adaWgp, nullptr})
       .Cases({"ampere", "sm_80", "sm_86", "sm_87"},
              TargetDetails{ampereWgp, nullptr})
       .Cases({"turing", "sm_75"}, TargetDetails{turingWgp, nullptr})
@@ -1036,21 +1139,31 @@ std::optional<TargetDetails> getNVIDIAGPUTargetDetails(StringRef target) {
 }
 
 StringRef normalizeNVIDIAGPUTarget(StringRef target) {
-  if (target.starts_with("sm_")) {
+  if (isKnownNVIDIACanonicalTarget(target)) {
     return target;
   }
 
-  if (target.starts_with("rtx40")) {
+  std::string lowerTargetStorage = target.lower();
+  StringRef lowerTarget = lowerTargetStorage;
+
+  if (lowerTarget.starts_with("rtx50")) {
+    return "sm_120";
+  }
+  if (lowerTarget.starts_with("rtx40")) {
     return "sm_89";
   }
-  if (target.starts_with("rtx30")) {
+  if (lowerTarget.starts_with("rtx30")) {
     return "sm_86";
   }
-  if (target.starts_with("rtx20")) {
+  if (lowerTarget.starts_with("rtx20")) {
     return "sm_75";
   }
 
-  return llvm::StringSwitch<StringRef>(target.lower())
+  return llvm::StringSwitch<StringRef>(lowerTarget)
+      .Cases({"rtxpro6000", "rtxpro6000blackwell"}, "sm_120")
+      .Cases({"b100", "b200", "gb200"}, "sm_100")
+      .Cases({"h100", "h200", "gh200", "hopper"}, "sm_90")
+      .Case("ada", "sm_89")
       .Case("a100", "sm_80")
       .Case("ampere", "sm_80") // Or sm_86/87; use smaller version.
       .Case("turing", "sm_75")

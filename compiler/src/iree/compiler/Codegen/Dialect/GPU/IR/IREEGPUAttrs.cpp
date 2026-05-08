@@ -2744,13 +2744,29 @@ bool DataTiledScaledMMAAttr::hasUnswizzledOperands() const {
 std::optional<int> TargetAttr::getCUDAComputeCapability() const {
   StringRef arch = getArch();
   if (!arch.starts_with("sm_")) {
-    return false;
+    return std::nullopt;
   }
-  APInt version;
-  if (arch.substr(3).getAsInteger(10, version)) {
-    return false;
+
+  StringRef versionAndSuffix = arch.substr(3);
+  size_t suffixOffset = 0;
+  while (suffixOffset < versionAndSuffix.size() &&
+         versionAndSuffix[suffixOffset] >= '0' &&
+         versionAndSuffix[suffixOffset] <= '9') {
+    ++suffixOffset;
   }
-  return version.getZExtValue();
+
+  StringRef version = versionAndSuffix.take_front(suffixOffset);
+  StringRef suffix = versionAndSuffix.drop_front(suffixOffset);
+  if (version.empty() ||
+      (!suffix.empty() && suffix != "a" && suffix != "f")) {
+    return std::nullopt;
+  }
+
+  int computeCapability = 0;
+  if (version.getAsInteger(10, computeCapability)) {
+    return std::nullopt;
+  }
+  return computeCapability;
 }
 
 bool TargetAttr::supportsTF32InputMMAOps() const {
