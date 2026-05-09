@@ -54,7 +54,7 @@ namespace mlir::iree_compiler::IREE::HAL {
 namespace {
 struct CUDAOptions {
   std::string clTarget = "sm_60";
-  std::string clTargetFeatures = "+ptx76";
+  std::string clTargetFeatures;
   bool clUsePtxas = false;
   std::string clUsePtxasFrom;
   std::string clUsePtxasParams;
@@ -67,7 +67,8 @@ struct CUDAOptions {
         llvm::cl::desc(
             // clang-format off
             "CUDA target as expected by LLVM NVPTX backend; e.g., "
-            "'sm_80'/'sm_90' for targeting Ampere/Hopper GPUs. "
+            "'sm_80'/'sm_90'/'sm_120' for targeting "
+            "Ampere/Hopper/Blackwell GPUs. "
             "Additionally this also supports architecture code names like "
             "'turing'/'ampere' or some product names like 'a100'/'rtx3090ti' "
             "for a better experience. See "
@@ -80,7 +81,8 @@ struct CUDAOptions {
         "iree-cuda-target-features", clTargetFeatures, llvm::cl::cat(category),
         llvm::cl::desc(
             "CUDA target features as expected by LLVM NVPTX backend; e.g. "
-            "use '+ptxNN' to set PTX version to NN."));
+            "use '+ptxNN' to set PTX version to NN. If omitted, LLVM selects "
+            "the minimum PTX version required by the CUDA target."));
 
     binder.opt<bool>(
         "iree-cuda-use-ptxas", clUsePtxas, llvm::cl::cat(category),
@@ -106,7 +108,8 @@ struct CUDAOptions {
   }
 
   LogicalResult verify(mlir::Builder &builder) const {
-    if (GPU::normalizeCUDATarget(clTarget).empty()) {
+    if (!GPU::getCUDATargetDetails(clTarget, clTargetFeatures,
+                                   builder.getContext())) {
       return emitError(builder.getUnknownLoc(), "Unknown CUDA target '")
              << clTarget << "'";
     }

@@ -112,6 +112,8 @@ Here is a table of commonly used architectures:
 | NVIDIA V100         | `sm_70`             | `volta`
 | NVIDIA A100         | `sm_80`             | `ampere`
 | NVIDIA H100         | `sm_90`             | `hopper`
+| NVIDIA B100/B200    | `sm_100`            | -
+| NVIDIA RTX50 series | `sm_120`            | -
 | NVIDIA RTX20 series | `sm_75`             | `turing`
 | NVIDIA RTX30 series | `sm_86`             | `ampere`
 | NVIDIA RTX40 series | `sm_89`             | `ada`
@@ -125,6 +127,13 @@ also supports two additional schemes to make a better developer experience:
 These two schemes are translated into the canonical form under the hood.
 We add support for common code/product names without aiming to be exhaustive.
 If the ones you want are missing, please use the canonical form.
+
+Blackwell spans multiple CUDA target families, so IREE does not provide a
+generic `blackwell` alias. Use a concrete target such as `sm_100` for
+datacenter Blackwell GPUs or `sm_120` for RTX50-class Blackwell GPUs.
+Architecture- or family-specific tensor instructions such as `tcgen05` require
+separate code generation support and are not enabled just by selecting an
+`sm_100*` or `sm_120*` target.
 
 ### :octicons-terminal-16: Run a compiled program
 
